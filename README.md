@@ -1,1 +1,3 @@
-# controle_passagem
+# Projeto: Contador de Fluxo <br>
+
+O objetivo desse projeto é criar um dispositivo que contabiliza o número de pessoas que entram e saem de um determinado ambiente. Para isso, o projeto utiliza dois sensores fototransistores TIL78 e dois  LED infravermelhos  TIL32. Cada LED emite um feixe de luz para cada fototransistor. O foto transistor, quando recebe luz transmite corrente e tem uma saída alta. Quando o feixe é interrompido, a corrente é cortada e a saída diminui. Foi usado o Arduíno Mega para registrar essas saídas. Quando uma pessoa passa por uma porta, ela vai interromper o feixe de luz, e assim é possível saber que houve movimento, e como o sistema possui dois fototransistores, registramos só o movimento foi de entrada ou saída, dependendo de qual fototransistor é interrompido primeiro.
