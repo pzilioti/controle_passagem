@@ -11,7 +11,8 @@
   "dependencies": {
     "express": "^4.14.0",
     "firebase": "^3.5.3",
-    "johnny-five": "^0.10.1",
-    "serialport": "^4.0.1"
+    "johnny-five": "^0.10.5",
+    "moment": "^2.16.0",
+    "superagent": "^2.3.0"
   }
 }

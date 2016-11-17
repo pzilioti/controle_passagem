@@ -1,6 +1,8 @@
 var express = require('express')
 var firebase = require("firebase")
 var router = express()
+var request = require('superagent')
+var moment = require("moment")
 
 var config = {
   apiKey: "AIzaSyBCx4bleuLaldYVBQKYDMzhaHKO_oH7mpo",
@@ -12,6 +14,45 @@ var config = {
 
 firebase.initializeApp(config)
 var rootRef = firebase.database().ref()
+
+router.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+router.get('/demo', function(req, res){
+	request
+	   .get('localhost:3001/visits-count')
+	   .query({ startAt: "1479395689874", endAt: "1479402393637" })
+	   .end(function(err, response){
+
+		var text = JSON.parse(response.text)
+		var result = text.result
+console.log('result', result)
+		var maxVisits = 0
+		result.summary.forEach(function(slot){
+		  if (slot.totalPeopleCount > maxVisits) maxVisits = slot.totalPeopleCount
+		})
+		var chart = result.summary.map(function(slot, idx){
+		    var computedHeight = (slot.totalPeopleCount * 100) / maxVisits 
+		    computedHeight = computedHeight.toFixed(2) || 0
+		    var time = moment(slot.start).format('LT')
+		    var style = "width: 40px; display: inline-block; margin-right: 10px;"
+		    return (
+			'<div class="slot" style="'+style+'">'+
+			    '<div class="bar" style="'+'height:'+computedHeight+'%; background-color: #6198d2;"></div>'+
+			    '<div class="time" style="'+"font-size: 0.7rem;"+'">'+time+'</div>'+
+			'</div>'
+		    )
+		})
+		var barsContent = ''
+		chart.forEach(function(el){barsContent+=el})
+		var style = "white-space: nowrap; height: 200px; max-width: 860px; display: inline-block; background-color: #f3f2f2; padding: 20px; overflow-x: auto; overflow-y: hidden;"
+		var htmlBody = '<html><body><div id="chart" style="'+style+'">'+barsContent+'</div></body></html>'
+    		res.send(htmlBody);
+	   });
+});
 
 
 router.get('/visits-count', function(req, res){
@@ -26,7 +67,13 @@ router.get('/visits-count', function(req, res){
 		.endAt(endAtTimestamp)
 		.once('value', function(snapshot){
 			var visits = snapshot.val()
-			visits = visits.filter(function(el){return el})
+			var visitsArray = []
+			if (visits) {
+				Object.keys(visits).forEach(function(key, index) {
+        				visitsArray.push(visits[key])
+      				});
+			}
+			visitsArray = visitsArray.filter(function(el){return el})
 
 			var slotMock = {
 				occupationCount: 0,
@@ -39,7 +86,7 @@ router.get('/visits-count', function(req, res){
 			
 			var rangeSize = endAtTimestamp - startAtTimestamp
 			// var slotsCount = rangeSize / (60 *60 * 1000) // 1hour
-			var slotSize = (1 *60 * 1000) // 1 minute
+			var slotSize = (5 *60 * 1000) // 1 minute
 			var slotsCount = rangeSize / slotSize
 			var roundedSlots = parseInt(slotsCount)
 			var slots = []
@@ -54,7 +101,7 @@ router.get('/visits-count', function(req, res){
 				slots.push(slot)
 			}
 
-			visits.forEach(function(visit, idx) {
+			visitsArray.forEach(function(visit, idx) {
 				var visitTimestamp = visit.timestamp
 				var targetSlot = slots.find(function(slot){
 					return (slot.start <= visitTimestamp && slot.end >= visitTimestamp)

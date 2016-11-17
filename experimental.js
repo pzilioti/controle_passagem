@@ -61,7 +61,8 @@ function checkHistory() {
     console.log("Cliente saiu. Total:", occupationCount)
   }
 	//rootRef.child('visits').set({"action":occupationHistory.action, "date":occupationHistory.timestamp});
-	rootRef.child('visits').set(occupationHistory);
+	var last = occupationHistory.pop()
+	rootRef.child('visits').push(last);
 }
 
 board.on("ready", function() {
